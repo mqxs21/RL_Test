@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 public enum EndGameReason
@@ -19,6 +20,12 @@ public class GameManager : MonoBehaviour
     private GameObject chaserInstance;
 
     public GameObject runnerDeathEffect;
+    public GameObject chaserDeathEffect;
+
+    private float timeElapsed = 0f;
+    private float timeLimit = 10f;
+
+    public TextMeshProUGUI timeText;
     void Start()
     {
         if (instance == null)
@@ -35,8 +42,31 @@ public class GameManager : MonoBehaviour
 
     void Spawn()
     {
+        if (runnerInstance != null)
+        {
+            Destroy(runnerInstance);
+        }
+        if (chaserInstance != null)
+        {
+            Destroy(chaserInstance);
+        }
         runnerInstance = Instantiate(runnerPrefab, runnerSpawn.transform.position, Quaternion.identity);
         chaserInstance = Instantiate(chaserPrefab, chaserSpawn.transform.position, Quaternion.identity);
+    }
+
+    void Update()
+    {
+
+        if (timeElapsed >= timeLimit)
+        {
+            timeElapsed = timeLimit;
+            EndGame(EndGameReason.TimeUp);
+        }
+        else
+        {
+            timeElapsed += Time.deltaTime;
+        }
+        timeText.text = (timeLimit - timeElapsed).ToString("F2") + "s";
     }
 
     public void EndGame(EndGameReason reason)
@@ -48,6 +78,7 @@ public class GameManager : MonoBehaviour
         }
         else if (reason == EndGameReason.TimeUp)
         {
+            Instantiate(chaserDeathEffect, chaserInstance.transform.position, Quaternion.identity);
             Destroy(chaserInstance);
         }
         StartCoroutine(FinishGame());
@@ -57,8 +88,6 @@ public class GameManager : MonoBehaviour
     IEnumerator FinishGame()
     {
         yield return new WaitForSeconds(1f);
-        Destroy(chaserInstance);
-        Destroy(runnerInstance);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
