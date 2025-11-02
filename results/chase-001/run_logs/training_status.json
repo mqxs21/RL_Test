@@ -1,0 +1,29 @@
+{
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.30.0",
+        "torch_version": "1.13.1+cpu"
+    },
+    "ChaseBehavior": {
+        "checkpoints": [
+            {
+                "steps": 499996,
+                "file_path": "results\\chase-001\\ChaseBehavior\\ChaseBehavior-499996.onnx",
+                "reward": null,
+                "creation_time": 1762106946.8919222,
+                "auxillary_file_paths": [
+                    "results\\chase-001\\ChaseBehavior\\ChaseBehavior-499996.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 499996,
+            "file_path": "results\\chase-001\\ChaseBehavior.onnx",
+            "reward": null,
+            "creation_time": 1762106946.8919222,
+            "auxillary_file_paths": [
+                "results\\chase-001\\ChaseBehavior\\ChaseBehavior-499996.pt"
+            ]
+        }
+    }
+}

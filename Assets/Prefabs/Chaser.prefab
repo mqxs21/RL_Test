@@ -250,7 +250,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: 3ae8badd111e6034b97bb285f66d7028, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: ChaseBehavior
@@ -285,3 +285,5 @@ MonoBehaviour:
   checkGroundRadius: 0.2
   checkGroundDist: 0.2
   arenaHalfSize: 20
+  distScale: 1
+  distEpsilon: 0.01

@@ -11,6 +11,7 @@ public class ManualControl : MonoBehaviour
     public float checkGroundRadius = 0.2f;
     public float checkGroundDist = 0.2f;
     bool isGrounded = true;
+    public bool useRandom = true;
 
     public LayerMask groundLayers;
     void Start()
@@ -23,9 +24,19 @@ public class ManualControl : MonoBehaviour
     void Update()
     {
         //only need to change these three for future ai control
-        horizontal = Input.GetAxisRaw("Horizontal");
+        if (useRandom)
+        {
+            horizontal = Random.Range(-1f, 1f);
+            vertical = Random.Range(-1f, 1f);
+        }
+        else
+        {
+            horizontal = Input.GetAxisRaw("Horizontal");
         vertical = Input.GetAxisRaw("Vertical");
         toJump = Input.GetKeyDown(KeyCode.Space);
+        }
+        
+        
 
 
         if (toJump && isGrounded)

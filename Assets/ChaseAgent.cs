@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
+using System;
 
 public class ChaseAgent : Agent
 {
@@ -34,6 +35,10 @@ public class ChaseAgent : Agent
         if (collision.gameObject.CompareTag("Runner"))
         {
             GameManager.instance.EndGame(EndGameReason.RunnerCaught);
+        }
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            AddReward(-0.01f);
         }
     }
     void Start()
@@ -116,7 +121,7 @@ public class ChaseAgent : Agent
         // Time left 0..1 (implement GetTimeLeft01 accordingly)
         sensor.AddObservation(GameManager.instance.GetTimeLeft01());
 
-       // Debug.Log("collecting obs");
+       Debug.Log("collecting obs");
     }
 
     // Add near top
@@ -137,13 +142,16 @@ public override void OnActionReceived(ActionBuffers actions)
     {
         float currDist = Vector3.Distance(transform.position, runnerTransform.position);
 
-        // Distance delta (positive if got closer)
         float dDelta = lastDist - currDist;
 
-            // Normalize by arena size, clamp small jitter
+
             float normDelta = dDelta;
-            // Reward getting closer, penalize getting farther (small weight)
-            AddReward(normDelta * distScale);
+            if (Math.Abs(normDelta) > distEpsilon)
+            {
+                AddReward(normDelta * distScale);
+            }
+           
+            
         
 
         // Small time pressure (keep tiny if you use distance shaping)

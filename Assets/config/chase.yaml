@@ -20,5 +20,3 @@ behaviors:
     max_steps: 3.0e6
     time_horizon: 128
     summary_freq: 10000
-    engine_settings:
-      time_scale: 50.0
