@@ -1,5 +1,6 @@
 using System.Collections;
 using TMPro;
+using Unity.MLAgents;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 public enum EndGameReason
@@ -16,16 +17,19 @@ public class GameManager : MonoBehaviour
     public GameObject runnerSpawn;
     public GameObject chaserSpawn;
 
-    private GameObject runnerInstance;
-    private GameObject chaserInstance;
+    public GameObject runnerInstance = null;
+    public GameObject chaserInstance = null;
 
     public GameObject runnerDeathEffect;
     public GameObject chaserDeathEffect;
 
-    private float timeElapsed = 0f;
-    private float timeLimit = 10f;
+    public float timeElapsed = 0f;
+    public float timeLimit = 10f;
 
     public TextMeshProUGUI timeText;
+    public bool gameEnded = false;
+    public static int trialCount = 0;
+    public TextMeshProUGUI trialText;
     void Start()
     {
         if (instance == null)
@@ -37,21 +41,27 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+        timeElapsed = 0f;
         Spawn();
+       ResetGame();
     }
 
     void Spawn()
     {
-        if (runnerInstance != null)
+        if (runnerInstance == null)
         {
-            Destroy(runnerInstance);
+            runnerInstance = Instantiate(runnerPrefab, runnerSpawn.transform.position, Quaternion.identity);
         }
-        if (chaserInstance != null)
+        if (chaserInstance == null)
         {
-            Destroy(chaserInstance);
+            chaserInstance = Instantiate(chaserPrefab, chaserSpawn.transform.position, Quaternion.identity);
         }
-        runnerInstance = Instantiate(runnerPrefab, runnerSpawn.transform.position, Quaternion.identity);
-        chaserInstance = Instantiate(chaserPrefab, chaserSpawn.transform.position, Quaternion.identity);
+        
+        
+        if (chaserInstance.GetComponent<ChaseAgent>() != null)
+        {
+            chaserInstance.GetComponent<ChaseAgent>().runnerTransform = runnerInstance.transform;
+        }
     }
 
     void Update()
@@ -67,27 +77,47 @@ public class GameManager : MonoBehaviour
             timeElapsed += Time.deltaTime;
         }
         timeText.text = (timeLimit - timeElapsed).ToString("F2") + "s";
+        trialText.text = "Trial:" + trialCount.ToString();
     }
 
     public void EndGame(EndGameReason reason)
     {
+        if (gameEnded) return;
+        gameEnded = true;
         if (reason == EndGameReason.RunnerCaught)
         {
             Instantiate(runnerDeathEffect, runnerInstance.transform.position, Quaternion.identity);
-            Destroy(runnerInstance);
+            chaserInstance.GetComponent<ChaseAgent>().OnTagSuccess();
+            Debug.Log("Runner caught");
         }
         else if (reason == EndGameReason.TimeUp)
         {
             Instantiate(chaserDeathEffect, chaserInstance.transform.position, Quaternion.identity);
-            Destroy(chaserInstance);
+            chaserInstance.GetComponent<ChaseAgent>().OnTimeout();
+            Debug.Log("Time up, runner wins");
         }
-        StartCoroutine(FinishGame());
 
-        
+        ResetGame();
     }
-    IEnumerator FinishGame()
+    public float GetTimeLeft01() => Mathf.Clamp01((timeLimit - timeElapsed) / Mathf.Max(0.0001f, timeLimit));
+
+    public float GetTimeLeft()
     {
-        yield return new WaitForSeconds(1f);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        return timeLimit - timeElapsed;
+    }
+    
+    public void ResetGame()
+    {
+        timeElapsed = 0f;
+        gameEnded = false;
+        trialCount += 1;
+        if (runnerInstance != null)
+        {
+            runnerInstance.transform.position = runnerSpawn.transform.position;
+        }
+        if (chaserInstance != null)
+        {
+            chaserInstance.transform.position = chaserSpawn.transform.position;
+        }
     }
 }

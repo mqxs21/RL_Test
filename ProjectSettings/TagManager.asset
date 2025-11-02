@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Chaser
+  - Runner
   layers:
   - Default
   - TransparentFX
