@@ -30,6 +30,10 @@ public class GameManager : MonoBehaviour
     public bool gameEnded = false;
     public static int trialCount = 0;
     public TextMeshProUGUI trialText;
+    public TextMeshProUGUI chaserWinNumText;
+    public TextMeshProUGUI runnerWinNumText;
+    private int chaserWinCount = 0;
+    private int runnerWinCount = 0;
     void Start()
     {
         if (instance == null)
@@ -78,6 +82,8 @@ public class GameManager : MonoBehaviour
         }
         timeText.text = (timeLimit - timeElapsed).ToString("F2") + "s";
         trialText.text = "Trial:" + trialCount.ToString();
+        chaserWinNumText.text = "Chaser Wins:" + chaserWinCount.ToString();
+        runnerWinNumText.text = "Runner Wins:" + runnerWinCount.ToString();
     }
 
     public void EndGame(EndGameReason reason)
@@ -88,12 +94,14 @@ public class GameManager : MonoBehaviour
         {
             Instantiate(runnerDeathEffect, runnerInstance.transform.position, Quaternion.identity);
             chaserInstance.GetComponent<ChaseAgent>().OnTagSuccess();
+            chaserWinCount += 1;
             Debug.Log("Runner caught");
         }
         else if (reason == EndGameReason.TimeUp)
         {
             Instantiate(chaserDeathEffect, chaserInstance.transform.position, Quaternion.identity);
             chaserInstance.GetComponent<ChaseAgent>().OnTimeout();
+            runnerWinCount += 1;
             Debug.Log("Time up, runner wins");
         }
 

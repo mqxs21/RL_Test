@@ -31,16 +31,17 @@ public class ChaseAgent : Agent
 
     private float lastDist;
     void OnCollisionEnter(Collision collision)
+{
+    if (collision.gameObject.CompareTag("Runner"))
     {
-        if (collision.gameObject.CompareTag("Runner"))
-        {
-            GameManager.instance.EndGame(EndGameReason.RunnerCaught);
-        }
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            AddReward(-0.01f);
-        }
+        GameManager.instance.EndGame(EndGameReason.RunnerCaught);
     }
+    if (collision.gameObject.CompareTag("Wall"))
+    {
+        AddReward(-0.02f); // slightly stronger vs -0.01 if you need stronger discouragement
+    }
+}
+
     void Start()
     {
         chaserRb = GetComponent<Rigidbody>();
@@ -71,16 +72,27 @@ public class ChaseAgent : Agent
 }
 
     public override void OnEpisodeBegin()
-    {
-        AcquireRunnerRefs();
-        //GameManager.instance.ResetGame();   
+{
+    AcquireRunnerRefs();
 
-        // Clear own physics
-        chaserRb.linearVelocity = Vector3.zero;
-        chaserRb.angularVelocity = Vector3.zero;
-        ax = az = 0; toJump = false;
-        lastDist = Vector3.Distance(transform.position, runnerTransform.position);
+    // Clear own physics
+    chaserRb.linearVelocity = Vector3.zero;
+    chaserRb.angularVelocity = Vector3.zero;
+    ax = az = 0; toJump = false;
+
+    if (runnerTransform != null)
+    {
+        lastRel = runnerTransform.position - transform.position;
+        lastRel.y = 0f;
+        lastDist = lastRel.magnitude;
     }
+    else
+    {
+        lastRel = Vector3.zero;
+        lastDist = 0f;
+    }
+}
+
 
     public override void CollectObservations(VectorSensor sensor)
     {
@@ -125,12 +137,16 @@ public class ChaseAgent : Agent
     }
 
     // Add near top
-[SerializeField] private float distScale = 1f;   // tune 0.05–0.2
+[SerializeField] private float distScale = 0.08f;   // tune: 0.03..0.2
 [SerializeField] private float distEpsilon = 0.01f; // ignore tiny noise
+[SerializeField] private float maxStepReward = 0.2f; // clamp per-step reward
+[SerializeField] private float timePenalty = -0.0005f;
+private Vector3 lastRel;   // last relative vector runner - chaser (x,z)
+
 
 public override void OnActionReceived(ActionBuffers actions)
 {
-    // your action mapping...
+    // decode actions
     int bx = actions.DiscreteActions[0];
     int bz = actions.DiscreteActions[1];
     int bj = actions.DiscreteActions[2];
@@ -138,28 +154,53 @@ public override void OnActionReceived(ActionBuffers actions)
     az = bz - 1;
     toJump = (bj == 1);
 
-    if (runnerTransform != null)
+    if (runnerTransform == null) return;
+
+    // compute current relative vector (runner - chaser) in XZ plane
+    Vector3 rel = runnerTransform.position - transform.position;
+    rel.y = 0f;
+    float currDist = rel.magnitude;
+
+    // if either distance is tiny / identical -> skip
+    if (currDist < 1e-6f || lastDist < 1e-6f)
     {
-        float currDist = Vector3.Distance(transform.position, runnerTransform.position);
-
-        float dDelta = lastDist - currDist;
-
-
-            float normDelta = dDelta;
-            if (Math.Abs(normDelta) > distEpsilon)
-            {
-                AddReward(normDelta * distScale);
-            }
-           
-            
-        
-
-        // Small time pressure (keep tiny if you use distance shaping)
-        AddReward(-0.0005f);
-
+        lastRel = rel;
         lastDist = currDist;
+        return;
     }
+
+    // We want the *component* of movement towards the runner:
+    // Compute how agent's relative vector changed along the previous direction.
+    Vector3 prevDir = lastRel.normalized; // direction from chaser -> runner at last step
+    // change in distance along that direction:
+    // positive dproj means we got *closer* along the ray
+    float prevProj = Vector3.Dot(lastRel, prevDir); // == lastDist
+    float currProj = Vector3.Dot(rel, prevDir);     // projection of current rel onto previous direction
+    float dproj = prevProj - currProj; // positive means moved toward runner along original direction
+
+    // fallback: if numeric weirdness occurs, use scalar delta
+    if (float.IsNaN(dproj))
+    {
+        dproj = lastDist - currDist;
+    }
+
+    // ignore tiny noise
+    if (Mathf.Abs(dproj) > distEpsilon)
+    {
+        float shaped = dproj * distScale;
+        // clamp step reward so it doesn't explode from single steps
+        shaped = Mathf.Clamp(shaped, -maxStepReward, maxStepReward);
+        AddReward(shaped);
+    }
+
+    // tiny time penalty to encourage faster solves
+    AddReward(timePenalty);
+    
+    // update memory
+    lastRel = rel;
+    lastDist = currDist;
 }
+
 
 
     void Update()

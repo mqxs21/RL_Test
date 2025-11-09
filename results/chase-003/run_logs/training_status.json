@@ -1,0 +1,47 @@
+{
+    "ChaseBehavior": {
+        "checkpoints": [
+            {
+                "steps": 0,
+                "file_path": "results\\chase-003\\ChaseBehavior\\ChaseBehavior-0.onnx",
+                "reward": null,
+                "creation_time": 1762710842.3876941,
+                "auxillary_file_paths": [
+                    "results\\chase-003\\ChaseBehavior\\ChaseBehavior-0.pt"
+                ]
+            },
+            {
+                "steps": 0,
+                "file_path": "results\\chase-003\\ChaseBehavior\\ChaseBehavior-0.onnx",
+                "reward": null,
+                "creation_time": 1762710911.296088,
+                "auxillary_file_paths": [
+                    "results\\chase-003\\ChaseBehavior\\ChaseBehavior-0.pt"
+                ]
+            },
+            {
+                "steps": 0,
+                "file_path": "results\\chase-003\\ChaseBehavior\\ChaseBehavior-0.onnx",
+                "reward": null,
+                "creation_time": 1762711029.74727,
+                "auxillary_file_paths": [
+                    "results\\chase-003\\ChaseBehavior\\ChaseBehavior-0.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 0,
+            "file_path": "results\\chase-003\\ChaseBehavior.onnx",
+            "reward": null,
+            "creation_time": 1762711029.74727,
+            "auxillary_file_paths": [
+                "results\\chase-003\\ChaseBehavior\\ChaseBehavior-0.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.30.0",
+        "torch_version": "1.13.1+cpu"
+    }
+}
